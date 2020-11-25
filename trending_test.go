@@ -1,7 +1,6 @@
 package trending_test
 
 import (
-        "fmt"
         "testing"
         "time"
 
@@ -13,7 +12,11 @@ import (
 func TestTrending(t *testing.T) {
         ts := memory.NewTimeSeries()
 
-        tr := trending.NewTrending(ts, time.Hour * 24, 14)
+        tr := trending.NewTrending(
+                ts,
+                trending.WithGranularity(time.Hour * 24),
+                trending.WithSamples(14),
+        )
 
         tr.Add("a", time.Now().Add(-10 * time.Hour * 24))
         tr.Add("a", time.Now().Add(-9 * time.Hour * 24))

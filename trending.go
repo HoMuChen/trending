@@ -4,11 +4,30 @@ import (
         "time"
 )
 
+const (
+        defaultGranularity      = time.Hour * 24
+        defaultSamples          = 14
+)
+
 type trending struct {
         ts              TimeSeries
 
-        interval        time.Duration
-        n               int
+        granularity     time.Duration
+        samples         int
+}
+
+type Option func(*trending)
+
+func WithGranularity(granularity time.Duration) Option {
+        return func(t *trending) {
+                t.granularity = granularity
+        }
+}
+
+func WithSamples(samples int) Option {
+        return func(t *trending) {
+                t.samples = samples
+        }
 }
 
 type TrendingServce interface {
@@ -16,12 +35,18 @@ type TrendingServce interface {
         Score(topic string, tm time.Time)         (float64, error)
 }
 
-func NewTrending(ts TimeSeries, interval time.Duration, n int) TrendingServce {
-        return &trending{
-                ts,
-                interval,
-                n,
+func NewTrending(ts TimeSeries, options ...Option) TrendingServce {
+        tr := &trending{
+                ts:             ts,
+                granularity:    defaultGranularity,
+                samples:        defaultSamples,
         }
+
+        for _, option := range options {
+                option(tr)
+        }
+
+        return tr
 }
 
 func (t *trending) Add (topic string, tm time.Time) error {
@@ -33,13 +58,13 @@ func (t *trending) Add (topic string, tm time.Time) error {
 }
 
 func (t *trending) Score (topic string, tm time.Time) (float64, error) {
-        count, _ := t.ts.Range(topic, tm.Add(-1 * t.interval), tm)
+        count, _ := t.ts.Range(topic, tm.Add(-1 * t.granularity), tm)
 
         if count == 0 {
                 return 0.0, nil
         }
 
-        if stat, err := t.ts.Stats(topic, tm, t.interval, t.n); err != nil {
+        if stat, err := t.ts.Stats(topic, tm, t.granularity, t.samples); err != nil {
                 return (float64(count) - stat.Avg) / stat.Std, nil
         }
 

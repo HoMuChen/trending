@@ -1,7 +1,6 @@
 package memory_test
 
 import (
-        "fmt"
         "testing"
         "time"
 
@@ -46,13 +45,13 @@ func TestStats(t *testing.T) {
         ts.Insert("b", time.Unix(1605000000, 0))
         ts.Insert("b", time.Unix(1605000000, 0))
 
-        stat, _ := ts.Stats("a", time.Unix(1605000000, 1), time.Hour * 24, 7)
+        avg, std, _ := ts.Stats("a", time.Unix(1605000000, 1), time.Hour * 24, 7)
 
-        if stat.Avg != 1 {
-                t.Errorf("Avg should be 0.1 but got: %v", stat.Avg)
+        if avg != 1 {
+                t.Errorf("Avg should be 0.1 but got: %v", avg)
         }
 
-        if stat.Std != 0 {
-                t.Errorf("Avg should be 0 but got: %v", stat.Std)
+        if std != 0 {
+                t.Errorf("Avg should be 0 but got: %v", std)
         }
 }

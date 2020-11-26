@@ -3,21 +3,19 @@ package memory
 import (
         "math"
         "time"
-
-        "github.com/HoMuChen/trending"
 )
 
-type ts struct {
+type TimeSeries struct {
         data    map[string][]time.Time
 }
 
-func NewTimeSeries() trending.TimeSeries {
-        return &ts{
+func NewTimeSeries() *TimeSeries {
+        return &TimeSeries{
                 make(map[string][]time.Time),
         }
 }
 
-func (t *ts) Range(tag string, start time.Time, end time.Time) (int, error) {
+func (t *TimeSeries) Range(tag string, start time.Time, end time.Time) (int, error) {
         count := 0
         points, ok := t.data[tag]
 
@@ -34,10 +32,10 @@ func (t *ts) Range(tag string, start time.Time, end time.Time) (int, error) {
         return count, nil
 }
 
-func (t *ts) Stats(tag string, end time.Time, duration time.Duration, number int) (trending.Stat, error) {
+func (t *TimeSeries) Stats(tag string, end time.Time, duration time.Duration, number int) (float64, float64, error) {
         points, ok := t.data[tag]
         if !ok {
-                return trending.Stat{0, 0}, nil
+                return 0, 0, nil
         }
 
         start := end.Add(duration * time.Duration(number) * -1)
@@ -56,18 +54,16 @@ func (t *ts) Stats(tag string, end time.Time, duration time.Duration, number int
         avg := float64(count) / float64(number)
         std := t.calStd(buckets, avg)
 
-        ret := trending.Stat{avg, std}
-
-        return ret, nil
+        return avg, std, nil
 }
 
-func (t *ts) Insert(tag string, tm time.Time) error {
+func (t *TimeSeries) Insert(tag string, tm time.Time) error {
         t.data[tag] = append(t.data[tag], tm)
 
         return nil
 }
 
-func (t *ts) calStd(nums []int, avg float64) float64 {
+func (t *TimeSeries) calStd(nums []int, avg float64) float64 {
         var sum float64 = 0
         for _, num := range nums {
                 sum += (float64(num) - avg) * (float64(num) - avg)

@@ -64,9 +64,11 @@ func (t *trending) Score (topic string, tm time.Time) (float64, error) {
                 return 0.0, nil
         }
 
-        if avg, std, err := t.ts.Stats(topic, tm, t.granularity, t.samples); err != nil {
-                return (float64(count) - avg) / std, nil
+        avg, std, err := t.ts.Stats(topic, tm, t.granularity, t.samples)
+
+        if err != nil {
+                return 0.0, err
         }
 
-        return 0.0, nil
+        return (float64(count) - avg) / std, nil
 }
